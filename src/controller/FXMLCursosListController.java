@@ -43,6 +43,7 @@ public class FXMLCursosListController implements Initializable {
     @FXML private Button Matriculados;
     @FXML private TableView<Curso> cursosList;
     @FXML private TableColumn<Curso, String> aulaColumn;
+    @FXML private TableColumn<Curso, String> diasColumn;
     @FXML private TableColumn<Curso, String> tituloColumn;
     @FXML private TableColumn<Curso, Integer> maxalumnosColumn;
     @FXML private TableColumn<Curso, String> profesorColumn;
@@ -53,6 +54,7 @@ public class FXMLCursosListController implements Initializable {
     @FXML@Override
     public void initialize(URL url, ResourceBundle rb) {
         tituloColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTitulodelcurso()));
+        diasColumn.setCellValueFactory(c -> new SimpleStringProperty(TestLibrary.diasToString(c.getValue().getDiasimparte())));
         profesorColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getProfesorAsignado()));
         maxalumnosColumn.setCellValueFactory(new PropertyValueFactory<>("numeroMaximodeAlumnos"));
         horaColumn.setCellValueFactory(new PropertyValueFactory<>("hora"));
@@ -99,14 +101,33 @@ public class FXMLCursosListController implements Initializable {
     @FXML private void matriculas(ActionEvent event) {
         mainApp.loadMatriculas(this.curso);
     }
-
+    
     @FXML private void modificar(ActionEvent event) throws ParseException {
-        boolean okAccion = mainApp.loadVentanaCurso(curso,"Modificar");
-        if (okAccion) cursosList.refresh();
+        Curso newCurso=new Curso();
+        changeCurso(newCurso,curso);
+        boolean okAccion = mainApp.loadVentanaCurso(newCurso,"Modificar");
+        if (okAccion) {
+            TestLibrary.matriculasObsListTodas.stream().filter((matricula) -> (curso.equals(matricula.getCurso()))).forEachOrdered((matricula) -> {
+                changeCurso(matricula.getCurso(),newCurso);
+            });
+            changeCurso(curso,newCurso);
+            cursosList.refresh();
+        }
     }
-
+    
+    private void changeCurso(Curso chgCurso,Curso newCurso){
+        chgCurso.setTitulodelcurso(newCurso.getTitulodelcurso());
+        chgCurso.setProfesorAsignado(newCurso.getProfesorAsignado());
+        chgCurso.setNumeroMaximodeAlumnos(newCurso.getNumeroMaximodeAlumnos());
+        chgCurso.setFechainicio(newCurso.getFechainicio());
+        chgCurso.setFechafin(newCurso.getFechafin());
+        chgCurso.setHora(newCurso.getHora());
+        chgCurso.setDiasimparte(newCurso.getDiasimparte());
+        chgCurso.setAula(newCurso.getAula());
+    }
+    
     @FXML private void borrar(ActionEvent event) throws ParseException {
-        if (mainApp.tieneAlumnosMatriculados(curso)) 
+        if (TestLibrary.tieneAlumnosMatriculados(curso)) 
             mainApp.loadAviso("Borrar Curso","No se puede borrar el curso: "+curso.getTitulodelcurso(),"Para borrar el curso debe primero borrar los alumnos que estuvieran matriculados");
         else {
             boolean okAccion = mainApp.loadVentanaCurso(curso,"Borrar");
