@@ -27,6 +27,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import modelo.Alumno;
+import modelo.Matricula;
 import testlibrary.TestLibrary;
 
 /**
@@ -55,7 +56,6 @@ public class FXMLAlumnosListController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         dniColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDni()));
         nombreColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNombre()));
-        //edadColumn.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEdad()));
         edadColumn.setCellValueFactory(new PropertyValueFactory<>("edad"));
         direccionColumn.setCellValueFactory(c->new SimpleStringProperty(c.getValue().getDireccion()));
         altaColumn.setCellValueFactory(new PropertyValueFactory<>("fechadealta"));
@@ -101,10 +101,27 @@ public class FXMLAlumnosListController implements Initializable {
     }
     
     @FXML private void modificar(ActionEvent event) throws ParseException {
-        boolean okAccion = mainApp.loadVentanaAlumno(alumno,"Modificar");
-        if (okAccion) alumnosList.refresh();
+        Alumno newAlumno=new Alumno();
+        changeAlumno(newAlumno, alumno);
+        boolean okAccion = mainApp.loadVentanaAlumno(newAlumno,"Modificar");
+        if (okAccion) {
+            TestLibrary.matriculasObsListTodas.stream().filter((matricula) -> (alumno.equals(matricula.getAlumno()))).forEachOrdered((matricula) -> {
+                changeAlumno(matricula.getAlumno(),newAlumno);
+            });
+            changeAlumno(alumno,newAlumno);
+            alumnosList.refresh();
+        }
     }
-
+    
+    private void changeAlumno(Alumno chgAlumno,Alumno newAlumno){
+        chgAlumno.setDni(newAlumno.getDni());
+        chgAlumno.setNombre(newAlumno.getNombre());
+        chgAlumno.setEdad(newAlumno.getEdad());
+        chgAlumno.setDireccion(newAlumno.getDireccion());
+        chgAlumno.setFechadealta(newAlumno.getFechadealta());
+        chgAlumno.setFoto(newAlumno.getFoto());
+    }
+    
     @FXML private void borrar(ActionEvent event) throws ParseException {
         if (TestLibrary.AlumnoMatriculado(alumno))
            mainApp.loadAviso("Borrar Alumno","No se puede borrar el alumno "+alumno.getNombre(),"Para borrar el alumno debe primero borrarlo de los cursos en los que estuviera matriculado");

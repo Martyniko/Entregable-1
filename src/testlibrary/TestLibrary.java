@@ -12,6 +12,7 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Optional;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -29,6 +30,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import modelo.Alumno;
 import modelo.Curso;
+import modelo.Dias;
 import modelo.Matricula;
 
 /**
@@ -136,7 +138,28 @@ public class TestLibrary extends Application {
     
     public static void salvar(){
         acceso.salvar();}
-        
+    
+    public static String diasToString(ArrayList<Dias> dias) {
+        String result="";
+        if (dias!=null)
+            result = dias.stream().map((dia) -> dia.toString()+" ").reduce(result, String::concat);
+        return result;
+    }
+    
+    public static boolean cursoCompatible(Curso curso, Alumno alumno) {
+        Boolean isOk =true;
+        Curso mc=new Curso();
+        if (alumno!=null)
+            for (Matricula matricula : matriculasObsListTodas) {
+                if(alumno.getNombre().equals(matricula.getAlumno().getNombre())) {
+                    mc=matricula.getCurso();
+                    if (mc.getHora().equals(curso.getHora()) && mc.getDiasimparte().equals(curso.getDiasimparte()))
+                        isOk=false;
+                }
+            }
+        return isOk;
+    }
+    
     public static Boolean AlumnoMatriculado(Alumno alumno) {
         Boolean isOk = false;
         if (alumno!=null)
@@ -146,7 +169,7 @@ public class TestLibrary extends Application {
         return isOk;
     }
         
-    public Boolean tieneAlumnosMatriculados(Curso curso) {
+    public static Boolean tieneAlumnosMatriculados(Curso curso) {
         Boolean isOk = false;
         if (curso!=null)
             for (Matricula matricula: TestLibrary.matriculasObsListTodas) {
@@ -154,7 +177,7 @@ public class TestLibrary extends Application {
             }
         return isOk;
     }
-        
+         
     public void loadAviso(String titulo,String aviso,String msg){
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(titulo);
